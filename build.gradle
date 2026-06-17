@@ -1,0 +1,66 @@
+group          = "com.etendoerp"
+version        = "1.0.0"
+description    = "Encrypted attachment storage with per-client envelope encryption"
+ext.artifact   = "encryptedattachments"
+ext.repository = "https://maven.pkg.github.com/etendosoftware/com.etendoerp.encryptedattachments"
+
+publishing {
+    publications {
+        "com.etendoerp.encryptedattachments"(MavenPublication) {
+            from components.java
+            groupId    = group
+            artifactId = artifact
+            version    = version
+        }
+    }
+    repositories {
+        maven {
+            url "https://maven.pkg.github.com/etendosoftware/com.etendoerp.encryptedattachments"
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://maven.pkg.github.com/etendosoftware/com.etendoerp.encryptedattachments"
+    }
+}
+
+sourceSets {
+    test {
+        java {
+            srcDirs = ['src-test']
+        }
+    }
+}
+
+dependencies {
+    implementation('com.etendoerp.platform:etendo-core:[26.1.0,26.2.0)')
+
+    testImplementation(platform('org.junit:junit-bom:5.10.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter-api')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine')
+
+    testImplementation('com.etendoerp.platform:etendo-core:[26.1.0,26.2.0)')
+    testImplementation('org.mockito:mockito-core:5.12.0')
+    testImplementation('net.bytebuddy:byte-buddy:1.14.15')
+    testImplementation('net.bytebuddy:byte-buddy-agent:1.14.15')
+}
+
+afterEvaluate {
+    // The Etendo plugin injects core classes directly onto compileJava.classpath (not via
+    // Gradle configurations), so test tasks won't see them unless we extend them here.
+    compileTestJava.classpath += compileJava.classpath
+    test.classpath += compileJava.classpath
+}
+
+test {
+    useJUnitPlatform()
+    doFirst {
+        def agentJar = configurations.testRuntimeClasspath.find { it.name.contains('byte-buddy-agent') }
+        if (agentJar) {
+            jvmArgs "-javaagent:${agentJar}"
+        }
+    }
+}
