@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Properties;
 import java.util.Random;
@@ -71,8 +72,7 @@ class AttachmentCryptoServiceTest {
     try {
       originalProps = provider.getOpenbravoProperties();
     } catch (RuntimeException | LinkageError notInitialised) {
-      // Properties not initialised in this context (e.g. running outside a full server);
-      // the engine only needs the master key, which we set below.
+      // Running outside a full server - only the master key set below is needed.
       originalProps = null;
     }
     props = new Properties();
@@ -289,7 +289,7 @@ class AttachmentCryptoServiceTest {
   //  Helpers
   // ------------------------------------------------------------------ //
 
-  private static SecretKey newAesKey() throws Exception {
+  private static SecretKey newAesKey() throws NoSuchAlgorithmException {
     KeyGenerator kg = KeyGenerator.getInstance("AES");
     kg.init(256);
     return kg.generateKey();
@@ -300,15 +300,20 @@ class AttachmentCryptoServiceTest {
     if (needle.length == 0 || needle.length > haystack.length) {
       return false;
     }
-    outer:
     for (int i = 0; i <= haystack.length - needle.length; i++) {
-      for (int j = 0; j < needle.length; j++) {
-        if (haystack[i + j] != needle[j]) {
-          continue outer;
-        }
+      if (matchesAt(haystack, needle, i)) {
+        return true;
       }
-      return true;
     }
     return false;
+  }
+
+  private static boolean matchesAt(byte[] haystack, byte[] needle, int offset) {
+    for (int j = 0; j < needle.length; j++) {
+      if (haystack[offset + j] != needle[j]) {
+        return false;
+      }
+    }
+    return true;
   }
 }

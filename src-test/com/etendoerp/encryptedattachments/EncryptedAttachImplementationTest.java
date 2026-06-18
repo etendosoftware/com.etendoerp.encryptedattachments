@@ -32,6 +32,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Properties;
@@ -64,6 +65,7 @@ class EncryptedAttachImplementationTest {
 
   private static final byte[] SAMPLE = "very secret attachment content"
       .getBytes(StandardCharsets.UTF_8);
+  private static final String ATTACHMENT_NAME = "certificate.p12";
 
   @TempDir
   Path tempDir;
@@ -77,12 +79,10 @@ class EncryptedAttachImplementationTest {
   private MockedStatic<OBMessageUtils> messagesMock;
 
   private OBDal dal;
-  private OBContext obContext;
   private AttachmentCryptoService cryptoService;
   private EncryptedAttachImplementation implementation;
   private Attachment attachment;
   private Table table;
-  private Client client;
   private SecretKey dek;
 
   @BeforeEach
@@ -96,7 +96,7 @@ class EncryptedAttachImplementationTest {
     OBPropertiesProvider.getInstance().setProperties(props);
 
     dal = mock(OBDal.class);
-    obContext = mock(OBContext.class);
+    OBContext obContext = mock(OBContext.class);
     obDalMock = mockStatic(OBDal.class);
     obDalMock.when(OBDal::getInstance).thenReturn(dal);
 
@@ -118,9 +118,9 @@ class EncryptedAttachImplementationTest {
     attachment = mock(Attachment.class);
     when(attachment.getTable()).thenReturn(table);
     when(attachment.getRecord()).thenReturn("00112233445566778899AABBCCDDEEFF");
-    when(attachment.getName()).thenReturn("certificate.p12");
+    when(attachment.getName()).thenReturn(ATTACHMENT_NAME);
 
-    client = mock(Client.class);
+    Client client = mock(Client.class);
     when(client.getId()).thenReturn("A1B2C3");
     when(obContext.getCurrentClient()).thenReturn(client);
 
@@ -159,7 +159,7 @@ class EncryptedAttachImplementationTest {
   @Test
   @DisplayName("uploadFile encrypts the source content before delegating to the core storage path")
   void uploadFileStoresEncryptedBytes() throws Exception {
-    Path source = tempDir.resolve("certificate.p12");
+    Path source = tempDir.resolve(ATTACHMENT_NAME);
     Files.write(source, SAMPLE);
 
     implementation.uploadFile(attachment, "binary", Collections.emptyMap(), source.toFile(), "TAB");
@@ -213,7 +213,7 @@ class EncryptedAttachImplementationTest {
     File downloaded = implementation.downloadFile(attachment);
 
     assertTrue(downloaded.exists());
-    assertEquals("certificate.p12", downloaded.getName());
+    assertEquals(ATTACHMENT_NAME, downloaded.getName());
     assertNotEquals(expectedStoredPath().toFile().getAbsolutePath(), downloaded.getAbsolutePath());
     assertArrayEquals(SAMPLE, Files.readAllBytes(downloaded.toPath()));
     assertFalse(containsPlaintext(Files.readAllBytes(expectedStoredPath())));
@@ -250,7 +250,7 @@ class EncryptedAttachImplementationTest {
   }
 
   private void injectCryptoService(EncryptedAttachImplementation target,
-      AttachmentCryptoService service) throws Exception {
+      AttachmentCryptoService service) throws ReflectiveOperationException {
     Field field = EncryptedAttachImplementation.class.getDeclaredField("cryptoService");
     field.setAccessible(true);
     field.set(target, service);
@@ -275,7 +275,7 @@ class EncryptedAttachImplementationTest {
 
   private Path expectedStoredPath() {
     return tempDir.resolve("C0FFEE-00112233445566778899AABBCCDDEEFF")
-        .resolve("certificate.p12");
+        .resolve(ATTACHMENT_NAME);
   }
 
   private boolean containsPlaintext(byte[] encryptedBytes) {
@@ -283,7 +283,7 @@ class EncryptedAttachImplementationTest {
         .contains(new String(SAMPLE, StandardCharsets.UTF_8));
   }
 
-  private SecretKey newAesKey() throws Exception {
+  private SecretKey newAesKey() throws NoSuchAlgorithmException {
     KeyGenerator kg = KeyGenerator.getInstance("AES");
     kg.init(256, new SecureRandom());
     return kg.generateKey();

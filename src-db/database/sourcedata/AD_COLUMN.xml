@@ -6,8 +6,8 @@
 <!--04E978447606423B9D45401BCAD20E5D-->  <AD_ORG_ID><![CDATA[0]]></AD_ORG_ID>
 <!--04E978447606423B9D45401BCAD20E5D-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--04E978447606423B9D45401BCAD20E5D-->  <NAME><![CDATA[Key Version]]></NAME>
-<!--04E978447606423B9D45401BCAD20E5D-->  <DESCRIPTION><![CDATA[Monotonic version of the client DEK, incremented on DEK rotation.]]></DESCRIPTION>
-<!--04E978447606423B9D45401BCAD20E5D-->  <HELP><![CDATA[Used to identify which DEK generation encrypted a given file.]]></HELP>
+<!--04E978447606423B9D45401BCAD20E5D-->  <DESCRIPTION><![CDATA[Data encryption key version number]]></DESCRIPTION>
+<!--04E978447606423B9D45401BCAD20E5D-->  <HELP><![CDATA[Version counter incremented each time the data encryption key is rotated for this client]]></HELP>
 <!--04E978447606423B9D45401BCAD20E5D-->  <COLUMNNAME><![CDATA[Key_Version]]></COLUMNNAME>
 <!--04E978447606423B9D45401BCAD20E5D-->  <AD_TABLE_ID><![CDATA[9C691F6B20F146499187BDDB6D99BD6F]]></AD_TABLE_ID>
 <!--04E978447606423B9D45401BCAD20E5D-->  <AD_REFERENCE_ID><![CDATA[11]]></AD_REFERENCE_ID>
@@ -166,8 +166,8 @@
 <!--3DE8D1D8404448E59AA168279A9CE5E8-->  <AD_ORG_ID><![CDATA[0]]></AD_ORG_ID>
 <!--3DE8D1D8404448E59AA168279A9CE5E8-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--3DE8D1D8404448E59AA168279A9CE5E8-->  <NAME><![CDATA[KEK Version]]></NAME>
-<!--3DE8D1D8404448E59AA168279A9CE5E8-->  <DESCRIPTION><![CDATA[Identifies the master key (KEK) generation used to wrap this DEK.]]></DESCRIPTION>
-<!--3DE8D1D8404448E59AA168279A9CE5E8-->  <HELP><![CDATA[Allows rotating the KEK by re-wrapping the stored DEKs without touching files.]]></HELP>
+<!--3DE8D1D8404448E59AA168279A9CE5E8-->  <DESCRIPTION><![CDATA[Key encryption key version number]]></DESCRIPTION>
+<!--3DE8D1D8404448E59AA168279A9CE5E8-->  <HELP><![CDATA[Version of the master key (KEK) used to wrap the data encryption key at the time of last rotation]]></HELP>
 <!--3DE8D1D8404448E59AA168279A9CE5E8-->  <COLUMNNAME><![CDATA[Kek_Version]]></COLUMNNAME>
 <!--3DE8D1D8404448E59AA168279A9CE5E8-->  <AD_TABLE_ID><![CDATA[9C691F6B20F146499187BDDB6D99BD6F]]></AD_TABLE_ID>
 <!--3DE8D1D8404448E59AA168279A9CE5E8-->  <AD_REFERENCE_ID><![CDATA[11]]></AD_REFERENCE_ID>
@@ -245,8 +245,8 @@
 <!--748A3806EC7C40E0BCCA02561A298802-->  <AD_ORG_ID><![CDATA[0]]></AD_ORG_ID>
 <!--748A3806EC7C40E0BCCA02561A298802-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--748A3806EC7C40E0BCCA02561A298802-->  <NAME><![CDATA[Wrapped DEK]]></NAME>
-<!--748A3806EC7C40E0BCCA02561A298802-->  <DESCRIPTION><![CDATA[Client data encryption key wrapped (AES-GCM) with the master key.]]></DESCRIPTION>
-<!--748A3806EC7C40E0BCCA02561A298802-->  <HELP><![CDATA[Base64-encoded per-client DEK encrypted with the KEK. Never stored in plaintext.]]></HELP>
+<!--748A3806EC7C40E0BCCA02561A298802-->  <DESCRIPTION><![CDATA[AES-GCM wrapped data encryption key]]></DESCRIPTION>
+<!--748A3806EC7C40E0BCCA02561A298802-->  <HELP><![CDATA[Base64-encoded DEK wrapped (encrypted) with the master KEK using AES-256-GCM]]></HELP>
 <!--748A3806EC7C40E0BCCA02561A298802-->  <COLUMNNAME><![CDATA[Wrapped_Dek]]></COLUMNNAME>
 <!--748A3806EC7C40E0BCCA02561A298802-->  <AD_TABLE_ID><![CDATA[9C691F6B20F146499187BDDB6D99BD6F]]></AD_TABLE_ID>
 <!--748A3806EC7C40E0BCCA02561A298802-->  <AD_REFERENCE_ID><![CDATA[10]]></AD_REFERENCE_ID>
@@ -362,7 +362,9 @@
 <!--800DF5740CE64A2CAA948F26A26FB319-->  <AD_CLIENT_ID><![CDATA[0]]></AD_CLIENT_ID>
 <!--800DF5740CE64A2CAA948F26A26FB319-->  <AD_ORG_ID><![CDATA[0]]></AD_ORG_ID>
 <!--800DF5740CE64A2CAA948F26A26FB319-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
-<!--800DF5740CE64A2CAA948F26A26FB319-->  <NAME><![CDATA[ETENC_Client_Key_ID]]></NAME>
+<!--800DF5740CE64A2CAA948F26A26FB319-->  <NAME><![CDATA[Client Encryption Key]]></NAME>
+<!--800DF5740CE64A2CAA948F26A26FB319-->  <DESCRIPTION><![CDATA[Per-client encryption key record]]></DESCRIPTION>
+<!--800DF5740CE64A2CAA948F26A26FB319-->  <HELP><![CDATA[Unique identifier for the encrypted attachment key record associated to a client]]></HELP>
 <!--800DF5740CE64A2CAA948F26A26FB319-->  <COLUMNNAME><![CDATA[ETENC_Client_Key_ID]]></COLUMNNAME>
 <!--800DF5740CE64A2CAA948F26A26FB319-->  <AD_TABLE_ID><![CDATA[9C691F6B20F146499187BDDB6D99BD6F]]></AD_TABLE_ID>
 <!--800DF5740CE64A2CAA948F26A26FB319-->  <AD_REFERENCE_ID><![CDATA[13]]></AD_REFERENCE_ID>
@@ -401,7 +403,9 @@
 <!--F3C0A7C632E54E43BA919140DE375B96-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--F3C0A7C632E54E43BA919140DE375B96-->  <NAME><![CDATA[Active]]></NAME>
 <!--F3C0A7C632E54E43BA919140DE375B96-->  <DESCRIPTION><![CDATA[A flag indicating whether this record is available for use or de-activated.]]></DESCRIPTION>
-<!--F3C0A7C632E54E43BA919140DE375B96-->  <HELP><![CDATA[There are two methods of making records unavailable in the system: One is to delete the record, the other is to de-activate the record. A de-activated record is not available for selection, but available for reporting.]]></HELP>
+<!--F3C0A7C632E54E43BA919140DE375B96-->  <HELP><![CDATA[There are two methods of making records unavailable in the system: One is to delete the record, the other is to de-activate the record. A de-activated record is not available for selection, but available for reporting. There are two reasons for de-activating and not deleting records: 
+(1) The system requires the record for auditing purposes.
+(2) The record is referenced by other records. E.g., you cannot delete a Business Partner, if there are existing invoices for it. By de-activating the Business Partner you prevent it from being used in future transactions.]]></HELP>
 <!--F3C0A7C632E54E43BA919140DE375B96-->  <COLUMNNAME><![CDATA[Isactive]]></COLUMNNAME>
 <!--F3C0A7C632E54E43BA919140DE375B96-->  <AD_TABLE_ID><![CDATA[9C691F6B20F146499187BDDB6D99BD6F]]></AD_TABLE_ID>
 <!--F3C0A7C632E54E43BA919140DE375B96-->  <AD_REFERENCE_ID><![CDATA[20]]></AD_REFERENCE_ID>

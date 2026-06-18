@@ -33,7 +33,7 @@ import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.model.ad.system.Client;
 import org.openbravo.model.common.enterprise.Organization;
 
-import com.etendoerp.encryptedattachments.data.EtencClientKey;
+import com.etendoerp.encryptedattachments.data.ClientKey;
 
 
 /**
@@ -118,15 +118,18 @@ public class AttachmentCryptoService {
   /**
    * Returns the DEK for {@code client}, creating and persisting it on demand.
    * Runs in admin mode to bypass org/client filters on ETENC_CLIENT_KEY.
+   *
+   * @param client the Etendo client whose DEK to fetch or create
+   * @return the client's active DEK together with its version number
    */
   public ClientDek getOrCreateDek(Client client) {
     try {
       OBContext.setAdminMode(true);
-      EtencClientKey record = findClientKeyRecord(client.getId());
-      if (record != null) {
-        int keyVersion = (int) (long) record.getKeyVersion();
+      ClientKey keyRecord = findClientKeyRecord(client.getId());
+      if (keyRecord != null) {
+        int keyVersion = (int) (long) keyRecord.getKeyVersion();
         log.debug("Using existing DEK for client {} (keyVersion {})", client.getId(), keyVersion);
-        return new ClientDek(unwrapDek(record.getWrappedDEK(), keyVersion), keyVersion);
+        return new ClientDek(unwrapDek(keyRecord.getWrappedDEK(), keyVersion), keyVersion);
       }
       return createAndStoreDek(client);
     } finally {
@@ -134,12 +137,12 @@ public class AttachmentCryptoService {
     }
   }
 
-  private EtencClientKey findClientKeyRecord(String clientId) {
-    OBCriteria<EtencClientKey> crit = OBDal.getInstance().createCriteria(EtencClientKey.class);
-    crit.add(Restrictions.eq(EtencClientKey.PROPERTY_CLIENT + ".id", clientId));
+  private ClientKey findClientKeyRecord(String clientId) {
+    OBCriteria<ClientKey> crit = OBDal.getInstance().createCriteria(ClientKey.class);
+    crit.add(Restrictions.eq(ClientKey.PROPERTY_CLIENT + ".id", clientId));
     crit.setFilterOnReadableOrganization(false);
     crit.setMaxResults(1);
-    return (EtencClientKey) crit.uniqueResult();
+    return (ClientKey) crit.uniqueResult();
   }
 
   private ClientDek createAndStoreDek(Client client) {
@@ -150,14 +153,14 @@ public class AttachmentCryptoService {
 
       String wrapped = wrapDek(dek, 1);
 
-      EtencClientKey record = OBProvider.getInstance().get(EtencClientKey.class);
-      record.setClient(client);
-      record.setOrganization(OBDal.getInstance().get(Organization.class, "0"));
-      record.setActive(true);
-      record.setWrappedDEK(wrapped);
-      record.setKeyVersion(1L);
-      record.setKEKVersion(1L);
-      OBDal.getInstance().save(record);
+      ClientKey keyRecord = OBProvider.getInstance().get(ClientKey.class);
+      keyRecord.setClient(client);
+      keyRecord.setOrganization(OBDal.getInstance().get(Organization.class, "0"));
+      keyRecord.setActive(true);
+      keyRecord.setWrappedDEK(wrapped);
+      keyRecord.setKeyVersion(1L);
+      keyRecord.setKEKVersion(1L);
+      OBDal.getInstance().save(keyRecord);
       OBDal.getInstance().flush();
 
       log.info("Generated new DEK for client {}", client.getId());
@@ -217,6 +220,8 @@ public class AttachmentCryptoService {
   /**
    * Encrypts {@code plaintext} with {@code dek} using AES-256-GCM.
    *
+   * @param plaintext  raw bytes to encrypt
+   * @param dek        the AES-256 data encryption key
    * @param keyVersion the DEK's key_version — written into the file header
    * @return byte array with header + ciphertext+tag
    */
@@ -245,6 +250,10 @@ public class AttachmentCryptoService {
    * Decrypts a file produced by {@link #encrypt}.
    * The DEK must correspond to the keyVersion stored in the header.
    * A GCM tag mismatch (e.g. wrong DEK from a different client) throws OBException.
+   *
+   * @param cipherFile encrypted byte array in the format written by {@link #encrypt}
+   * @param dek        the AES-256 data encryption key for this client
+   * @return the original plaintext bytes
    */
   public byte[] decrypt(byte[] cipherFile, SecretKey dek) {
     if (cipherFile.length < HEADER_SIZE) {
