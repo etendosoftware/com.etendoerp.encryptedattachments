@@ -10,6 +10,7 @@ package com.etendoerp.encryptedattachments;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Map;
@@ -91,8 +92,19 @@ public class EncryptedAttachImplementation extends CoreAttachImplementation {
 
       // Write the decrypted content to its own temp subdirectory so the manager's
       // deleteTempFile() removes both the file and the directory afterwards.
-      File tempDir = Files.createTempDirectory("etenc-",
-          PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"))).toFile();
+      File tempDir;
+      if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+        tempDir = Files.createTempDirectory("etenc-",
+            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"))).toFile();
+      } else {
+        tempDir = Files.createTempDirectory("etenc-").toFile();
+        tempDir.setReadable(false, false);
+        tempDir.setWritable(false, false);
+        tempDir.setExecutable(false, false);
+        tempDir.setReadable(true, true);
+        tempDir.setWritable(true, true);
+        tempDir.setExecutable(true, true);
+      }
       File decrypted = new File(tempDir, attachment.getName());
       Files.write(decrypted.toPath(), plaintext);
       log.info("ENC download: decrypted attachment '{}' for client {} ({} bytes -> {} bytes)",
