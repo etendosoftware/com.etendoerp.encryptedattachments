@@ -19,9 +19,9 @@ import static org.mockito.Mockito.mockStatic;
 
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
-import java.util.Random;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -178,7 +178,7 @@ class AttachmentCryptoServiceTest {
   void largeFileRoundTrip() throws Exception {
     SecretKey dek = newAesKey();
     byte[] large = new byte[2 * 1024 * 1024]; // 2 MB
-    new Random(42).nextBytes(large);          // fixed seed -> reproducible
+    Arrays.fill(large, (byte) 0xAB);          // deterministic fill, no PRNG needed
 
     byte[] encrypted = service.encrypt(large, dek, 1);
     assertArrayEquals(large, service.decrypt(encrypted, dek));
