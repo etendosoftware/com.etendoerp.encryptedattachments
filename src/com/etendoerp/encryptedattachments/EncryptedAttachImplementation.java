@@ -98,10 +98,13 @@ public class EncryptedAttachImplementation extends CoreAttachImplementation {
             PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"))).toFile();
       } else {
         tempDir = Files.createTempDirectory("etenc-").toFile(); //NOSONAR permissions set below
-        boolean restricted = tempDir.setReadable(false, false) & tempDir.setWritable(false, false)
-            & tempDir.setExecutable(false, false) & tempDir.setReadable(true, true)
-            & tempDir.setWritable(true, true) & tempDir.setExecutable(true, true);
-        if (!restricted) {
+        boolean revokeRead = tempDir.setReadable(false, false);
+        boolean revokeWrite = tempDir.setWritable(false, false);
+        boolean revokeExec = tempDir.setExecutable(false, false);
+        boolean grantRead = tempDir.setReadable(true, true);
+        boolean grantWrite = tempDir.setWritable(true, true);
+        boolean grantExec = tempDir.setExecutable(true, true);
+        if (!(revokeRead && revokeWrite && revokeExec && grantRead && grantWrite && grantExec)) {
           log.warn("ENC: could not fully restrict temp dir permissions on non-POSIX filesystem");
         }
       }
