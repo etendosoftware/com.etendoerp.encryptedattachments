@@ -97,7 +97,7 @@ public class EncryptedAttachImplementation extends CoreAttachImplementation {
         tempDir = Files.createTempDirectory("etenc-",
             PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"))).toFile();
       } else {
-        tempDir = Files.createTempDirectory("etenc-").toFile();
+        tempDir = Files.createTempDirectory("etenc-").toFile(); //NOSONAR permissions set below
         tempDir.setReadable(false, false);
         tempDir.setWritable(false, false);
         tempDir.setExecutable(false, false);
