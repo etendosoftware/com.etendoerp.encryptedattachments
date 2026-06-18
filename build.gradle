@@ -30,7 +30,7 @@ repositories {
 sourceSets {
     test {
         java {
-            srcDirs = ['src-test']
+            srcDirs = ['src-test/src']
         }
     }
 }
