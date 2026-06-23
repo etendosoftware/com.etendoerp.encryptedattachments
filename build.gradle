@@ -1,0 +1,57 @@
+group          = "com.etendoerp"
+version        = "1.0.0"
+description    = "Encrypted attachment storage with per-client envelope encryption"
+ext.artifact   = "encryptedattachments"
+ext.repository = "https://maven.pkg.github.com/etendosoftware/com.etendoerp.encryptedattachments"
+
+configurations {
+    moduleDependencyContainer
+}
+
+publishing {
+    publications {
+        "com.etendoerp.encryptedattachments"(MavenPublication) {
+            from components.java
+            groupId    = group
+            artifactId = artifact
+            version    = version
+        }
+    }
+    repositories {
+        maven {
+            url "https://maven.pkg.github.com/etendosoftware/com.etendoerp.encryptedattachments"
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://maven.pkg.github.com/etendosoftware/com.etendoerp.encryptedattachments"
+    }
+    maven {
+        url "https://repo.futit.cloud/repository/maven-public-releases"
+    }
+    maven {
+        url "https://repo.futit.cloud/repository/maven-public-jars"
+    }
+}
+
+dependencies {
+    testImplementation(platform('org.junit:junit-bom:5.10.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter-api')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine')
+    testImplementation('org.mockito:mockito-core:5.12.0')
+    testImplementation('net.bytebuddy:byte-buddy:1.14.15')
+    testImplementation('net.bytebuddy:byte-buddy-agent:1.14.15')
+}
+
+test {
+    useJUnitPlatform()
+    doFirst {
+        def agentJar = configurations.testRuntimeClasspath.find { it.name.contains('byte-buddy-agent') }
+        if (agentJar) {
+            jvmArgs "-javaagent:${agentJar}"
+        }
+    }
+}
